@@ -2,6 +2,7 @@
 
 from openai import OpenAI
 import sys
+import webbrowser
 
 client = OpenAI(api_key='YOUR_API_KEY') # Replace YOUR_API_KEY with your OpenAI API key
 
@@ -14,7 +15,6 @@ if len == 1:
 #Open chatGPT on chrome
 if sys.argv[1] == "-o":
     print("Opening ChatGPT on Chrome")
-    import webbrowser
     webbrowser.open('https://chat.openai.com/')
     sys.exit()
 
