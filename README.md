@@ -1,4 +1,4 @@
-# IA-CLI
+# TermIA - An AI terminal interface
 A simple CLI that communicates with the OpenIA api
 
 ## Installation
