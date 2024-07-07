@@ -3,6 +3,8 @@
 from openai import OpenAI
 import sys
 import webbrowser
+from dotenv import load_dotenv
+import os
 
 client = OpenAI(api_key='YOUR_API_KEY') # Replace YOUR_API_KEY with your OpenAI API key
 
