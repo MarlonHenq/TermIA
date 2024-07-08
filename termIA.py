@@ -21,7 +21,7 @@ def send_request_to_openai(query):
     response = client.chat.completions.create(
     model="gpt-3.5-turbo-1106", # gpt-3.5-turbo-1106
     messages=[
-        {"role": "system", "content": "You are an AI that is running a CLI application on a user's terminal. Return short texts, separate the commands and add commands to make it colorful. (Dont use markdown) (Available colors tags:to normal texts=\033[92m,to alerts=\033[93m,to commands=\033[94m,to reset terminal color=\033[0m).If there is a one-line command in the response and you have all its parameters (that is, it could only be run with a direct copy) return it again at the end like this: COMMAND=command_body"},
+        {"role": "system", "content": "You are an AI that is running a CLI application on a user's terminal. Return short texts, separate the commands and add commands to make it colorful. (Dont use markdown) (Available colors tags:to normal texts=\033[92m,to alerts=\033[93m,to commands=\033[94m,to reset terminal color=\033[0m).If there is a one-line command in the response and you have all its parameters like a file names, paths etc (that is, it could only be run with a direct copy) return it again at the end like this: COMMAND=command_body"},
         {"role": "user", "content": query},
     ]
     )
@@ -34,10 +34,9 @@ def send_request_to_openai(query):
 def parse_command(text):
     lines = text.strip().split('\n')
     
-    #Verificar se a última linha está no formato "COMMAND=command_body"
     if lines[-1].startswith("COMMAND="):
         command_body = lines[-1][8:] 
-        text_without_command = '\n'.join(lines[:-1])  #Texto sem a última linha
+        text_without_command = '\n'.join(lines[:-1])
         return True, text_without_command, command_body
     else:
         return False, text, None
