@@ -3,17 +3,23 @@ A simple CLI that communicates with the OpenIA api
 
 ## Installation
 
-Change the API key in the `iaCLI.py` file
+copy or rename the `example.env` file to `.env`
 
-```python
-api_key = "YOUR_API_KEY"
+```bash
+cp example.env .env
+```
+Change the API key in the `.env` file
+
+```text
+OPENAI_API_KEY="YOUR_API_KEY"
 ```
 
 Copy the file to `/usr/bin/` and give it execution permissions
 
 ```bash
-sudo cp iaCLI.py /usr/bin/iaCLI
-sudo chmod +x /usr/bin/iaCLI
+sudo cp termIA.py /usr/bin/termIA
+sudo cp .env /usr/bin/.env
+sudo chmod +x /usr/bin/termIA
 ```
 
 ## Usage
@@ -21,13 +27,24 @@ sudo chmod +x /usr/bin/iaCLI
 Create a prompt
 
 ```bash
-iaCLI "Your prompt here" 
+termIA "Your prompt here" 
 #or
-iaCLI Your prompt here
+termIA Your prompt here
+```
+note: use '-f' to force rum the command without prompt
+
+```bash
+termIA -f "Your prompt here" 
 ```
 
 Open ChatGPT on Chrome
 
 ```bash
-iaCLI -o
+termIA -o
+```
+
+Open Help menu
+
+```bash
+termIA --help
 ```
