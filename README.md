@@ -17,9 +17,9 @@ OPENAI_API_KEY="YOUR_API_KEY"
 Copy the file to `/usr/bin/` and give it execution permissions
 
 ```bash
-sudo cp termIA.py /usr/bin/termIA
-sudo cp .env /usr/bin/.env
-sudo chmod +x /usr/bin/termIA
+sudo cp termIA.py /usr/local/bin/termIA
+sudo cp .env /usr/local/bin/.env
+sudo chmod +x /usr/local/bin/termIA
 ```
 
 ## Usage

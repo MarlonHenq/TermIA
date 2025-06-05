@@ -10,26 +10,44 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-if OPENAI_API_KEY == None:
+if OPENAI_API_KEY is None:
     click.echo("API key not found. Please set it in the .env file")
     sys.exit()
 
 client = OpenAI(api_key=OPENAI_API_KEY)
-def send_request_to_openai(query):
-    to_return = ''
+
+# Prompt para uso direto no terminal (respostas curtas, comandos, etc.)
+PROMPT_TERMINAL = (
+    "You are an AI that is running in a CLI on a user's terminal. "
+    "Respond with short, concise answers. Use colors in your output to highlight things "
+    "(Available colors: normal=\033[92m, alert=\033[93m, command=\033[94m, reset=\033[0m). "
+    "Separate command steps clearly. If the user input is a direct question about a specific command "
+    "and you can provide a working one-liner (with all params), repeat it at the end like this: COMMAND=your_command_here"
+)
+
+# Prompt para uso com entrada via pipe (respostas melhores)
+PROMPT_PIPE = (
+    "You are an AI receiving the contents of a file, script, or program via stdin. "
+    "Interpret what the user has sent and explain it clearly and thoroughly. "
+    "If it's a script or code, describe its purpose, structure, and potential effects. "
+    "You can use terminal colors to improve clarity "
+    "(Available colors: normal=\033[92m, alert=\033[93m, command=\033[94m, reset=\033[0m). "
+    "Do not return COMMAND= at the end unless it's strictly necessary. "
+    "The user is looking for insight or interpretation, not just execution."
+)
+
+def send_request_to_openai(query, is_pipe=False):
+    prompt = PROMPT_PIPE if is_pipe else PROMPT_TERMINAL
 
     response = client.chat.completions.create(
-    model="gpt-3.5-turbo-1106", # gpt-3.5-turbo-1106
-    messages=[
-        {"role": "system", "content": "You are an AI that is running a CLI application on a user's terminal. Return short texts, separate the commands and add commands to make it colorful. (Dont use markdown) (Available colors tags:to normal texts=\033[92m,to alerts=\033[93m,to commands=\033[94m,to reset terminal color=\033[0m).If there is a one-line command in the response and you have all its parameters like a file names, paths etc (that is, it could only be run with a direct copy) return it again at the end like this: COMMAND=command_body"},
-        {"role": "user", "content": query},
-    ]
+        model="gpt-3.5-turbo-1106",
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": query},
+        ]
     )
 
-    for choice in response.choices:
-        to_return = to_return + choice.message.content
-    
-    return to_return
+    return ''.join(choice.message.content for choice in response.choices)
 
 def parse_command(text):
     lines = text.strip().split('\n')
@@ -40,13 +58,12 @@ def parse_command(text):
         return True, text_without_command, command_body
     else:
         return False, text, None
-    
+
 def run_command(command):
     print("\nRun '\033[94m" + command + "\033[0m'?" + " [y/n]")
     response = input()
-    if response == 'y':
+    if response.lower() == 'y':
         os.system(command)
-    
 
 @click.group(invoke_without_command=True)
 @click.option('-o', '--open', 'open_in_browser', is_flag=True, help='Open ChatGPT in the browser')
@@ -54,31 +71,29 @@ def run_command(command):
 @click.argument('query', nargs=-1, required=False)
 @click.pass_context
 def cli(ctx, open_in_browser, force, query):
-    global OPENAI_API_KEY
-
     if open_in_browser:
         webbrowser.open('https://chatgpt.com/')
         sys.exit(0)
 
-    if not OPENAI_API_KEY:
-        click.echo("API key not found. Please set it in the .env file or use the '-k' option.")
-        sys.exit(1)
-
     if ctx.invoked_subcommand is None:
-        if query:
-            send = ' '.join(query)
-            response = send_request_to_openai(send)
+        is_pipe = not sys.stdin.isatty()
+        stdin_text = sys.stdin.read() if is_pipe else ''
+        query_text = ' '.join(query) if query else ''
+
+        full_input = f"{stdin_text.strip()}\n{query_text.strip()}".strip()
+
+        if full_input:
+            response = send_request_to_openai(full_input, is_pipe=is_pipe)
             returns = parse_command(response)
 
             click.echo(returns[1])
 
-            if returns[0]:
+            if returns[0] and not is_pipe:
                 if force:
                     print("\n\033[93mCommand executed! \033[0m")
                     os.system(returns[2])
                 else:
                     run_command(returns[2])
-
         else:
             click.echo(ctx.get_help())
 
